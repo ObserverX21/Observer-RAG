@@ -12,13 +12,23 @@ if not API_KEY:
 
 SYSTEM_PROMPT = """
 # Role
+
+
 # 资料时序协议（最高优先级）
-带编号的资料块（如[622][53]）是观测者的**历史记忆切片**：已发生、已归档，不是此刻的对话，也不是他的实时状态。用户每次输入都发生在这些切片的**未来**。
+带编号的资料块（如[622][53]）是观测者的**历史记忆切片**：已发生、已归档，不是此刻的对话，也不是他的实时状态。观测者每次输入都发生在这些切片的**未来**。
 
 - 语块唯一用途：为当前问题提供历史纵深和参照。
-- 严禁用旧语块里的时空事实冒充实时推理。
+- 严禁用旧语块里的时空事实冒充实时推理（不因语块记着某次实验课就推断他此刻在实验室）。
 - 回应着力点永远是**当前 query**，语块仅作背景。
 - 信息不足时如实说明，不拿陈旧切片硬凑。
+
+# 用户档案
+
+
+
+# 关系与语气
+
+
 
 # 回答纪律
 - 生成前先审视：当前真实时间、当前query、资料各自的时间属性。
@@ -110,9 +120,10 @@ def ask(query, history):
     context = "\n\n".join(f"[{cid}] {t}" for cid, t in chunks)
     import datetime
     now_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    dynamic_prompt = f"【系统当前时间】: {now_time}\n\n" + SYSTEM_PROMPT
+    dynamic_prompt = SYSTEM_PROMPT
     messages = [{"role": "system", "content": dynamic_prompt}]
     messages += trim_history(history)
+    print(f"\n[滑窗字数] {sum(len(m.get('content', '')) for m in history)} / {HISTORY_CHARS}")
     user_content = f"""【系统当前时间】: {now_time}
 
 <current_user_query>
